@@ -15,6 +15,7 @@ import protojson "google.golang.org/protobuf/encoding/protojson"
 import proto "google.golang.org/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
+import "github.com/morikuni/failure"
 
 import bytes "bytes"
 import errors "errors"
@@ -862,9 +863,9 @@ func ensurePanicResponses(ctx context.Context, resp http.ResponseWriter, hooks *
 // errFromPanic returns the typed error if the recovered panic is an error, otherwise formats as error.
 func errFromPanic(p interface{}) error {
 	if err, ok := p.(error); ok {
-		return err
+		return failure.MarkUnexpected(err)
 	}
-	return fmt.Errorf("panic: %v", p)
+	return failure.MarkUnexpected(fmt.Errorf("panic: %v", p))
 }
 
 // internalWithCause is a Twirp Internal error wrapping an original error cause,

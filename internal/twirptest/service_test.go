@@ -19,6 +19,7 @@ import (
 	"crypto/tls"
 	"errors"
 	"fmt"
+	"github.com/morikuni/failure"
 	"io"
 	"io/ioutil"
 	"log"
@@ -31,7 +32,6 @@ import (
 	"testing"
 	"time"
 
-	pkgerrors "github.com/pkg/errors"
 	"google.golang.org/protobuf/encoding/protojson"
 
 	"github.com/twitchtv/twirp"
@@ -1141,10 +1141,23 @@ func TestPanicsTriggerErrorHooks(t *testing.T) {
 	errHook := &twirp.ServerHooks{
 		Error: func(ctx context.Context, twerr twirp.Error) context.Context {
 			errHookCalled = true
-			// The error should have a .Cause containing the panic value for inspection
-			err := pkgerrors.Cause(twerr)
-			if err != panicValue {
-				t.Fatalf("Unexpected error cause from panic: %v", err)
+			// The error should have a .Unwrap containing the panic value for inspection
+			if !errors.Is(twerr, panicValue) {
+				t.Fatalf("Unexpected error cause from panic: %v", twerr)
+			}
+
+			// The panic value should have callstack attached.
+			if stack, ok := failure.CallStackOf(twerr); !ok {
+				t.Fatalf("expected callstack from panic error")
+			} else {
+				headFrame := stack.HeadFrame()
+				if headFrame.Func() != "errFromPanic" {
+					t.Fatalf("expected callstack with headFrame errorFromPanic, got %s", headFrame.Func())
+				}
+				if serviceFrame := stack.Frames()[4]; serviceFrame.Func() != "hatmaker.MakeHat" || serviceFrame.Pkg() != "twirptest" {
+					t.Fatalf("expected callstack with MakeHat, got %+v", serviceFrame)
+				}
+
 			}
 			return ctx
 		},

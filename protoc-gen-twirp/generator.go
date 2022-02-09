@@ -297,6 +297,7 @@ func (t *twirp) generateImports(file *descriptor.FileDescriptorProto) {
 	t.P(`import `, t.pkgs["proto"], ` "google.golang.org/protobuf/proto"`)
 	t.P(`import `, t.pkgs["twirp"], ` "github.com/twitchtv/twirp"`)
 	t.P(`import `, t.pkgs["ctxsetters"], ` "github.com/twitchtv/twirp/ctxsetters"`)
+	t.P(`import `, t.pkgs["failure"], ` "github.com/morikuni/failure"`)
 	t.P()
 
 	// It's legal to import a message and use it as an input or output for a
@@ -708,9 +709,9 @@ func (t *twirp) generateUtils() {
 	t.P(`// errFromPanic returns the typed error if the recovered panic is an error, otherwise formats as error.`)
 	t.P(`func errFromPanic(p interface{}) error {`)
 	t.P(`	if err, ok := p.(error); ok {`)
-	t.P(`	  return err`)
+	t.P(`	  return failure.MarkUnexpected(err)`)
 	t.P(`	}`)
-	t.P(`	return fmt.Errorf("panic: %v", p)`)
+	t.P(`	return failure.MarkUnexpected(fmt.Errorf("panic: %v", p))`)
 	t.P(`}`)
 	t.P(``)
 	t.P(`// internalWithCause is a Twirp Internal error wrapping an original error cause,`)

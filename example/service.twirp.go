@@ -21,6 +21,7 @@ import errors "errors"
 import io "io"
 import path "path"
 import url "net/url"
+import failure "github.com/morikuni/failure"
 
 // Version compatibility assertion.
 // If the constant is not defined in the package, that likely means
@@ -862,9 +863,9 @@ func ensurePanicResponses(ctx context.Context, resp http.ResponseWriter, hooks *
 // errFromPanic returns the typed error if the recovered panic is an error, otherwise formats as error.
 func errFromPanic(p interface{}) error {
 	if err, ok := p.(error); ok {
-		return err
+		return failure.MarkUnexpected(err)
 	}
-	return fmt.Errorf("panic: %v", p)
+	return failure.MarkUnexpected(fmt.Errorf("panic: %v", p))
 }
 
 // internalWithCause is a Twirp Internal error wrapping an original error cause,

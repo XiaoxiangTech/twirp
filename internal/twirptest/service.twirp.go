@@ -15,13 +15,13 @@ import protojson "google.golang.org/protobuf/encoding/protojson"
 import proto "google.golang.org/protobuf/proto"
 import twirp "github.com/twitchtv/twirp"
 import ctxsetters "github.com/twitchtv/twirp/ctxsetters"
-import "github.com/morikuni/failure"
 
 import bytes "bytes"
 import errors "errors"
 import io "io"
 import path "path"
 import url "net/url"
+import failure "github.com/morikuni/failure"
 
 // Version compatibility assertion.
 // If the constant is not defined in the package, that likely means
